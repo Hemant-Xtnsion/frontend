@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
+import { API_BASE_URL } from './config'
 
 interface Message {
   role: 'bot' | 'user'
@@ -31,6 +32,11 @@ function App() {
   const inputRef = useRef<HTMLInputElement>(null)
   const speechTimeoutRef = useRef<number | undefined>(undefined)
   const inactivityTimerRef = useRef<number | undefined>(undefined)
+
+  // Helper function to build API URL (uses full URL in production, relative in dev)
+  const getApiUrl = (endpoint: string) => {
+    return API_BASE_URL ? `${API_BASE_URL}${endpoint}` : endpoint
+  }
 
   // Initialize session ID - always generate new one on page load/refresh
   useEffect(() => {
@@ -239,7 +245,7 @@ function App() {
     
     console.log(`[FRONTEND] Calling /close-session (${context})`, { sessionId, phoneVerified, messagesLength: messages.length })
     try {
-      const response = await fetch('/close-session', {
+      const response = await fetch(getApiUrl('/close-session'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ session_id: sessionId })
@@ -363,7 +369,7 @@ function App() {
     }
 
     try {
-      const response = await fetch('/feedback', {
+      const response = await fetch(getApiUrl('/feedback'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
@@ -418,7 +424,7 @@ function App() {
       const queryResolved = type === 'up' ? 'Yes' : 'No'
       const userSatisfaction = type === 'up' ? '5' : '1' // Thumbs up = 5 (very satisfied), Thumbs down = 1 (very dissatisfied)
 
-      const response = await fetch('/feedback', {
+      const response = await fetch(getApiUrl('/feedback'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
@@ -471,7 +477,7 @@ function App() {
     setIsTyping(true)
 
     try {
-      const response = await fetch('/chat', {
+      const response = await fetch(getApiUrl('/chat'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ session_id: sessionId, text })
